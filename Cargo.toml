@@ -1,5 +1,5 @@
 [package]
-name = "bebop"
+name = "bebop-lang"
 version = "0.1.0"
 edition = "2021"
 description = "LISP based Markdown preprocessor for creating html documents!"

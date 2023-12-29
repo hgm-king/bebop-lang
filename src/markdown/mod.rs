@@ -31,6 +31,6 @@ pub fn markdown_to_html(md: &str) -> Result<String, String> {
 
     Ok(md
         .into_iter()
-        .map(|md| html::markdown_to_html(md))
+        .map(html::markdown_to_html)
         .collect())
 }

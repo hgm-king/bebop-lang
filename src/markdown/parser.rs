@@ -16,10 +16,10 @@ use nom::{
 pub fn parse_markdown(i: &str) -> IResult<&str, Vec<Markdown>> {
     many1(alt((
         map(parse_header, |e| Markdown::Heading(e.0, e.1)),
-        map(parse_unordered_list, |e| Markdown::UnorderedList(e)),
-        map(parse_ordered_list, |e| Markdown::OrderedList(e)),
+        map(parse_unordered_list, Markdown::UnorderedList),
+        map(parse_ordered_list, Markdown::OrderedList),
         map(parse_code_block, |e| Markdown::Codeblock(e.0, e.1)),
-        map(parse_markdown_text, |e| Markdown::Line(e)),
+        map(parse_markdown_text, Markdown::Line),
         map(parse_markdown_inline, |e| Markdown::Line(vec![e])),
     )))(i)
 }
@@ -88,7 +88,7 @@ fn parse_plaintext(i: &str) -> IResult<&str, MarkdownInline> {
         ))),)),
     )(i)?;
 
-    if vec.len() == 0 {
+    if vec.is_empty() {
         Err(NomErr::Error(Error {
             input: i,
             code: ErrorKind::Not,
@@ -96,9 +96,7 @@ fn parse_plaintext(i: &str) -> IResult<&str, MarkdownInline> {
     } else {
         Ok((
             i,
-            MarkdownInline::Plaintext(String::from(
-                vec.into_iter().map(|e| e.to_string()).collect::<String>(),
-            )),
+            MarkdownInline::Plaintext(vec.into_iter().map(|e| e.to_string()).collect::<String>()),
         ))
     }
 }
@@ -193,65 +191,65 @@ mod tests {
     #[test]
     fn test_parse_italics() {
         assert_eq!(
-            parse_italics(("*here is italic*")),
+            parse_italics("*here is italic*"),
             Ok(((""), MarkdownInline::Italic(String::from("here is italic"))))
         );
         assert_eq!(
-            parse_italics(("*here is italic*\n")),
+            parse_italics("*here is italic*\n"),
             Ok((
                 ("\n"),
                 MarkdownInline::Italic(String::from("here is italic"))
             ))
         );
-        assert!(parse_italics(("*here is italic")).is_err());
-        assert!(parse_italics(("here is italic*")).is_err());
-        assert!(parse_italics(("here is italic")).is_err());
-        assert!(parse_italics(("*")).is_err());
-        assert!(parse_italics(("**")).is_err());
-        assert!(parse_italics(("")).is_err());
-        assert!(parse_italics(("**we are doing bold**")).is_err());
+        assert!(parse_italics("*here is italic").is_err());
+        assert!(parse_italics("here is italic*").is_err());
+        assert!(parse_italics("here is italic").is_err());
+        assert!(parse_italics("*").is_err());
+        assert!(parse_italics("**").is_err());
+        assert!(parse_italics("").is_err());
+        assert!(parse_italics("**we are doing bold**").is_err());
     }
 
     #[test]
     fn test_parse_boldtext() {
         assert_eq!(
-            parse_boldtext(("**here is bold**")),
+            parse_boldtext("**here is bold**"),
             Ok(((""), MarkdownInline::Bold(String::from("here is bold"))))
         );
         assert_eq!(
-            parse_boldtext(("**here is bold**\n")),
+            parse_boldtext("**here is bold**\n"),
             Ok((("\n"), MarkdownInline::Bold(String::from("here is bold"))))
         );
-        assert!(parse_boldtext(("**here is bold")).is_err());
-        assert!(parse_boldtext(("here is bold**")).is_err());
-        assert!(parse_boldtext(("here is bold")).is_err());
-        assert!(parse_boldtext(("****")).is_err());
-        assert!(parse_boldtext(("**")).is_err());
-        assert!(parse_boldtext(("*")).is_err());
-        assert!(parse_boldtext(("")).is_err());
-        assert!(parse_boldtext(("*this is italic*")).is_err());
+        assert!(parse_boldtext("**here is bold").is_err());
+        assert!(parse_boldtext("here is bold**").is_err());
+        assert!(parse_boldtext("here is bold").is_err());
+        assert!(parse_boldtext("****").is_err());
+        assert!(parse_boldtext("**").is_err());
+        assert!(parse_boldtext("*").is_err());
+        assert!(parse_boldtext("").is_err());
+        assert!(parse_boldtext("*this is italic*").is_err());
     }
 
     #[test]
     fn test_parse_inline_code() {
         assert_eq!(
-            parse_inline_code(("`here is bold`\n")),
+            parse_inline_code("`here is bold`\n"),
             Ok((
                 ("\n"),
                 MarkdownInline::InlineCode(String::from("here is bold"))
             ))
         );
-        assert!(parse_inline_code(("`here is code")).is_err());
-        assert!(parse_inline_code(("here is code`")).is_err());
-        assert!(parse_inline_code(("``")).is_err());
-        assert!(parse_inline_code(("`")).is_err());
-        assert!(parse_inline_code(("")).is_err());
+        assert!(parse_inline_code("`here is code").is_err());
+        assert!(parse_inline_code("here is code`").is_err());
+        assert!(parse_inline_code("``").is_err());
+        assert!(parse_inline_code("`").is_err());
+        assert!(parse_inline_code("").is_err());
     }
 
     #[test]
     fn test_parse_link() {
         assert_eq!(
-            parse_link(("[title](https://www.example.com)")),
+            parse_link("[title](https://www.example.com)"),
             Ok((
                 (""),
                 MarkdownInline::Link(
@@ -260,145 +258,145 @@ mod tests {
                 )
             ))
         );
-        assert!(parse_link(("[title](whatever")).is_err());
+        assert!(parse_link("[title](whatever").is_err());
     }
 
     #[test]
     fn test_parse_image() {
         assert_eq!(
-            parse_image(("![alt text](image.jpg)")),
+            parse_image("![alt text](image.jpg)"),
             Ok((
                 (""),
                 MarkdownInline::Image(String::from("alt text"), String::from("image.jpg"))
             ))
         );
-        assert!(parse_image(("[title](whatever")).is_err());
+        assert!(parse_image("[title](whatever").is_err());
     }
 
     #[test]
     fn test_parse_plaintext() {
         assert_eq!(
-            parse_plaintext(("1234567890")),
+            parse_plaintext("1234567890"),
             Ok(((""), MarkdownInline::Plaintext(String::from("1234567890"))))
         );
         assert_eq!(
-            parse_plaintext(("oh my gosh!")),
+            parse_plaintext("oh my gosh!"),
             Ok(((""), MarkdownInline::Plaintext(String::from("oh my gosh!"))))
         );
         assert_eq!(
-            parse_plaintext(("oh my gosh![")),
+            parse_plaintext("oh my gosh!["),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from("oh my gosh!["))
             ))
         );
         assert_eq!(
-            parse_plaintext(("oh my gosh!*")),
+            parse_plaintext("oh my gosh!*"),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from("oh my gosh!*"))
             ))
         );
         assert_eq!(
-            parse_plaintext(("*bold babey bold*")),
+            parse_plaintext("*bold babey bold*"),
             Err(NomErr::Error(Error {
                 input: ("*bold babey bold*"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("[link babey](and then somewhat)")),
+            parse_plaintext("[link babey](and then somewhat)"),
             Err(NomErr::Error(Error {
                 input: ("[link babey](and then somewhat)"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("`codeblock for bums`")),
+            parse_plaintext("`codeblock for bums`"),
             Err(NomErr::Error(Error {
                 input: ("`codeblock for bums`"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("![ but wait theres more](jk)")),
+            parse_plaintext("![ but wait theres more](jk)"),
             Err(NomErr::Error(Error {
                 input: ("![ but wait theres more](jk)"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("here is plaintext")),
+            parse_plaintext("here is plaintext"),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from("here is plaintext"))
             ))
         );
         assert_eq!(
-            parse_plaintext(("here is plaintext!")),
+            parse_plaintext("here is plaintext!"),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from("here is plaintext!"))
             ))
         );
         assert_eq!(
-            parse_plaintext(("here is plaintext![image starting")),
+            parse_plaintext("here is plaintext![image starting"),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from("here is plaintext![image starting"))
             ))
         );
         assert_eq!(
-            parse_plaintext(("here is plaintext\n")),
+            parse_plaintext("here is plaintext\n"),
             Ok((
                 ("\n"),
                 MarkdownInline::Plaintext(String::from("here is plaintext"))
             ))
         );
         assert_eq!(
-            parse_plaintext(("here is plaintext\nand the next line")),
+            parse_plaintext("here is plaintext\nand the next line"),
             Ok((
                 ("\nand the next line"),
                 MarkdownInline::Plaintext(String::from("here is plaintext"))
             ))
         );
         assert_eq!(
-            parse_plaintext(("*here is italic*")),
+            parse_plaintext("*here is italic*"),
             Err(NomErr::Error(Error {
                 input: ("*here is italic*"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("**here is bold**")),
+            parse_plaintext("**here is bold**"),
             Err(NomErr::Error(Error {
                 input: ("**here is bold**"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("`here is code`")),
+            parse_plaintext("`here is code`"),
             Err(NomErr::Error(Error {
                 input: ("`here is code`"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("[title](https://www.example.com)")),
+            parse_plaintext("[title](https://www.example.com)"),
             Err(NomErr::Error(Error {
                 input: ("[title](https://www.example.com)"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("![alt text](image.jpg)")),
+            parse_plaintext("![alt text](image.jpg)"),
             Err(NomErr::Error(Error {
                 input: ("![alt text](image.jpg)"),
                 code: ErrorKind::Not
             }))
         );
         assert_eq!(
-            parse_plaintext(("")),
+            parse_plaintext(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Not
@@ -409,22 +407,22 @@ mod tests {
     #[test]
     fn test_parse_markdown_inline() {
         assert_eq!(
-            parse_markdown_inline(("*here is italic*")),
+            parse_markdown_inline("*here is italic*"),
             Ok(((""), MarkdownInline::Italic(String::from("here is italic"))))
         );
         assert_eq!(
-            parse_markdown_inline(("**here is bold**")),
+            parse_markdown_inline("**here is bold**"),
             Ok(((""), MarkdownInline::Bold(String::from("here is bold"))))
         );
         assert_eq!(
-            parse_markdown_inline(("`here is code`")),
+            parse_markdown_inline("`here is code`"),
             Ok((
                 (""),
                 MarkdownInline::InlineCode(String::from("here is code"))
             ))
         );
         assert_eq!(
-            parse_markdown_inline(("[title](https://www.example.com)")),
+            parse_markdown_inline("[title](https://www.example.com)"),
             Ok((
                 (""),
                 (MarkdownInline::Link(
@@ -434,21 +432,21 @@ mod tests {
             ))
         );
         assert_eq!(
-            parse_markdown_inline(("![alt text](image.jpg)")),
+            parse_markdown_inline("![alt text](image.jpg)"),
             Ok((
                 (""),
                 (MarkdownInline::Image(String::from("alt text"), String::from("image.jpg")))
             ))
         );
         assert_eq!(
-            parse_markdown_inline(("here is plaintext!")),
+            parse_markdown_inline("here is plaintext!"),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from("here is plaintext!"))
             ))
         );
         assert_eq!(
-            parse_markdown_inline(("here is some plaintext *but what if we italicize?")),
+            parse_markdown_inline("here is some plaintext *but what if we italicize?"),
             Ok((
                 (""),
                 MarkdownInline::Plaintext(String::from(
@@ -458,23 +456,23 @@ mod tests {
         );
         assert_eq!(
             parse_markdown_inline(
-                (r#"here is some plaintext
-    *but what if we italicize?"#)
+                r#"here is some plaintext
+    *but what if we italicize?"#
             ),
             Ok((
                 ("\n    *but what if we italicize?"),
                 MarkdownInline::Plaintext(String::from("here is some plaintext"))
             ))
         );
-        assert!(parse_markdown_inline(("\n")).is_err(),);
-        assert!(parse_markdown_inline(("")).is_err());
+        assert!(parse_markdown_inline("\n").is_err(),);
+        assert!(parse_markdown_inline("").is_err());
     }
 
     #[test]
     fn test_parse_markdown_text() {
-        assert_eq!(parse_markdown_text(("\n")), Ok(((""), vec![])));
+        assert_eq!(parse_markdown_text("\n"), Ok(((""), vec![])));
         assert_eq!(
-            parse_markdown_text(("here is some plaintext\n")),
+            parse_markdown_text("here is some plaintext\n"),
             Ok((
                 (""),
                 vec![MarkdownInline::Plaintext(String::from(
@@ -483,7 +481,7 @@ mod tests {
             ))
         );
         assert_eq!(
-            parse_markdown_text(("here is some plaintext\nand some more yeah")),
+            parse_markdown_text("here is some plaintext\nand some more yeah"),
             Ok((
                 ("and some more yeah"),
                 vec![MarkdownInline::Plaintext(String::from(
@@ -492,7 +490,7 @@ mod tests {
             ))
         );
         assert_eq!(
-            parse_markdown_text(("here is some plaintext *but what if we italicize?*\n")),
+            parse_markdown_text("here is some plaintext *but what if we italicize?*\n"),
             Ok((
                 (""),
                 vec![
@@ -502,7 +500,7 @@ mod tests {
             ))
         );
         assert_eq!(
-                parse_markdown_text(("here is some plaintext *but what if we italicize?* I guess it doesnt **matter** in my `code`\n")),
+                parse_markdown_text("here is some plaintext *but what if we italicize?* I guess it doesnt **matter** in my `code`\n"),
                 Ok(((""), vec![
                     MarkdownInline::Plaintext(String::from("here is some plaintext ")),
                     MarkdownInline::Italic(String::from("but what if we italicize?")),
@@ -513,7 +511,7 @@ mod tests {
                 ]))
             );
         assert_eq!(
-            parse_markdown_text(("here is some plaintext *but what if we italicize?*\n")),
+            parse_markdown_text("here is some plaintext *but what if we italicize?*\n"),
             Ok((
                 (""),
                 vec![
@@ -526,19 +524,19 @@ mod tests {
 
     #[test]
     fn test_parse_header_tag() {
-        assert_eq!(parse_header_tag(("# ")), Ok(((""), 1)));
-        assert_eq!(parse_header_tag(("### ")), Ok(((""), 3)));
-        assert_eq!(parse_header_tag(("# h1")), Ok((("h1"), 1)));
-        assert_eq!(parse_header_tag(("# h1")), Ok((("h1"), 1)));
+        assert_eq!(parse_header_tag("# "), Ok(((""), 1)));
+        assert_eq!(parse_header_tag("### "), Ok(((""), 3)));
+        assert_eq!(parse_header_tag("# h1"), Ok((("h1"), 1)));
+        assert_eq!(parse_header_tag("# h1"), Ok((("h1"), 1)));
         assert_eq!(
-            parse_header_tag((" ")),
+            parse_header_tag(" "),
             Err(NomErr::Error(Error {
                 input: (" "),
                 code: ErrorKind::TakeWhile1
             }))
         );
         assert_eq!(
-            parse_header_tag(("#")),
+            parse_header_tag("#"),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
@@ -549,57 +547,57 @@ mod tests {
     #[test]
     fn test_parse_header() {
         assert_eq!(
-            parse_header(("# h1\n")),
+            parse_header("# h1\n"),
             Ok((
                 (""),
                 (1, vec![MarkdownInline::Plaintext(String::from("h1"))])
             ))
         );
         assert_eq!(
-            parse_header(("## h2\n")),
+            parse_header("## h2\n"),
             Ok((
                 (""),
                 (2, vec![MarkdownInline::Plaintext(String::from("h2"))])
             ))
         );
         assert_eq!(
-            parse_header(("###  h3\n")),
+            parse_header("###  h3\n"),
             Ok((
                 (""),
                 (3, vec![MarkdownInline::Plaintext(String::from(" h3"))])
             ))
         );
         assert_eq!(
-            parse_header(("###h3")),
+            parse_header("###h3"),
             Err(NomErr::Error(Error {
                 input: ("h3"),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_header(("###")),
+            parse_header("###"),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_header(("")),
+            parse_header(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::TakeWhile1
             }))
         );
         assert_eq!(
-            parse_header(("#")),
+            parse_header("#"),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
             }))
         );
-        assert_eq!(parse_header(("# \n")), Ok(((""), (1, vec![]))));
+        assert_eq!(parse_header("# \n"), Ok(((""), (1, vec![]))));
         assert_eq!(
-            parse_header(("# test\n")),
+            parse_header("# test\n"),
             Ok((
                 (""),
                 (1, vec![MarkdownInline::Plaintext(String::from("test"))])
@@ -609,34 +607,34 @@ mod tests {
 
     #[test]
     fn test_parse_unordered_list_tag() {
-        assert_eq!(parse_unordered_list_tag(("- ")), Ok(((""), ("-"))));
+        assert_eq!(parse_unordered_list_tag("- "), Ok(((""), ("-"))));
         assert_eq!(
-            parse_unordered_list_tag(("- and some more")),
+            parse_unordered_list_tag("- and some more"),
             Ok((("and some more"), ("-")))
         );
         assert_eq!(
-            parse_unordered_list_tag(("-")),
+            parse_unordered_list_tag("-"),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_unordered_list_tag(("-and some more")),
+            parse_unordered_list_tag("-and some more"),
             Err(NomErr::Error(Error {
                 input: ("and some more"),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_unordered_list_tag(("--")),
+            parse_unordered_list_tag("--"),
             Err(NomErr::Error(Error {
                 input: ("-"),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_unordered_list_tag(("")),
+            parse_unordered_list_tag(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
@@ -647,7 +645,7 @@ mod tests {
     #[test]
     fn test_parse_unordered_list_element() {
         assert_eq!(
-            parse_unordered_list_element(("- this is an element\n")),
+            parse_unordered_list_element("- this is an element\n"),
             Ok((
                 (""),
                 vec![MarkdownInline::Plaintext(String::from(
@@ -657,9 +655,9 @@ mod tests {
         );
         assert_eq!(
             parse_unordered_list_element(
-                (r#"- this is an element
+                r#"- this is an element
 - this is another element
-"#)
+"#
             ),
             Ok((
                 ("- this is another element\n"),
@@ -669,17 +667,17 @@ mod tests {
             ))
         );
         assert_eq!(
-            parse_unordered_list_element(("")),
+            parse_unordered_list_element(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
             }))
         );
-        assert_eq!(parse_unordered_list_element(("- \n")), Ok(((""), vec![])));
-        assert!(parse_unordered_list_element(("- ")).is_err());
-        assert!(parse_unordered_list_element(("- test")).is_err());
+        assert_eq!(parse_unordered_list_element("- \n"), Ok(((""), vec![])));
+        assert!(parse_unordered_list_element("- ").is_err());
+        assert!(parse_unordered_list_element("- test").is_err());
         assert_eq!(
-            parse_unordered_list_element(("-")),
+            parse_unordered_list_element("-"),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
@@ -689,9 +687,9 @@ mod tests {
 
     #[test]
     fn test_parse_unordered_list() {
-        assert!(parse_unordered_list(("- this is an element")).is_err());
+        assert!(parse_unordered_list("- this is an element").is_err());
         assert_eq!(
-            parse_unordered_list(("- this is an element\n")),
+            parse_unordered_list("- this is an element\n"),
             Ok((
                 (""),
                 vec![vec![MarkdownInline::Plaintext(String::from(
@@ -701,9 +699,9 @@ mod tests {
         );
         assert_eq!(
             parse_unordered_list(
-                (r#"- this is an element
+                r#"- this is an element
 - here is another
-"#)
+"#
             ),
             Ok((
                 (""),
@@ -719,38 +717,38 @@ mod tests {
 
     #[test]
     fn test_parse_ordered_list_tag() {
-        assert_eq!(parse_ordered_list_tag(("1. ")), Ok(((""), ("1"))));
+        assert_eq!(parse_ordered_list_tag("1. "), Ok(((""), ("1"))));
         assert_eq!(
-            parse_ordered_list_tag(("1234567. ")),
+            parse_ordered_list_tag("1234567. "),
             Ok(((""), ("1234567")))
         );
         assert_eq!(
-            parse_ordered_list_tag(("3. and some more")),
+            parse_ordered_list_tag("3. and some more"),
             Ok((("and some more"), ("3")))
         );
         assert_eq!(
-            parse_ordered_list_tag(("1")),
+            parse_ordered_list_tag("1"),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_ordered_list_tag(("1.and some more")),
+            parse_ordered_list_tag("1.and some more"),
             Err(NomErr::Error(Error {
                 input: ("and some more"),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_ordered_list_tag(("1111.")),
+            parse_ordered_list_tag("1111."),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
-            parse_ordered_list_tag(("")),
+            parse_ordered_list_tag(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::TakeWhile1
@@ -761,7 +759,7 @@ mod tests {
     #[test]
     fn test_parse_ordered_list_element() {
         assert_eq!(
-            parse_ordered_list_element(("1. this is an element\n")),
+            parse_ordered_list_element("1. this is an element\n"),
             Ok((
                 (""),
                 vec![MarkdownInline::Plaintext(String::from(
@@ -771,9 +769,9 @@ mod tests {
         );
         assert_eq!(
             parse_ordered_list_element(
-                (r#"1. this is an element
+                r#"1. this is an element
 1. here is another
-"#)
+"#
             ),
             Ok((
                 ("1. here is another\n"),
@@ -783,29 +781,29 @@ mod tests {
             ))
         );
         assert_eq!(
-            parse_ordered_list_element(("")),
+            parse_ordered_list_element(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::TakeWhile1
             }))
         );
         assert_eq!(
-            parse_ordered_list_element(("")),
+            parse_ordered_list_element(""),
             Err(NomErr::Error(Error {
                 input: (""),
                 code: ErrorKind::TakeWhile1
             }))
         );
-        assert_eq!(parse_ordered_list_element(("1. \n")), Ok(((""), vec![])));
-        assert!(parse_ordered_list_element(("1. test")).is_err());
-        assert!(parse_ordered_list_element(("1. ")).is_err());
-        assert!(parse_ordered_list_element(("1.")).is_err());
+        assert_eq!(parse_ordered_list_element("1. \n"), Ok(((""), vec![])));
+        assert!(parse_ordered_list_element("1. test").is_err());
+        assert!(parse_ordered_list_element("1. ").is_err());
+        assert!(parse_ordered_list_element("1.").is_err());
     }
 
     #[test]
     fn test_parse_ordered_list() {
         assert_eq!(
-            parse_ordered_list(("1. this is an element\n")),
+            parse_ordered_list("1. this is an element\n"),
             Ok((
                 (""),
                 vec![vec![MarkdownInline::Plaintext(String::from(
@@ -813,12 +811,12 @@ mod tests {
                 ))]]
             ))
         );
-        assert!(parse_ordered_list(("1. test")).is_err());
+        assert!(parse_ordered_list("1. test").is_err());
         assert_eq!(
             parse_ordered_list(
-                (r#"1. this is an element
+                r#"1. this is an element
 2. here is another
-"#)
+"#
             ),
             Ok((
                 (""),
@@ -833,9 +831,9 @@ mod tests {
 
         assert_eq!(
             parse_ordered_list(
-                (r#"1. this is an element
+                r#"1. this is an element
 1. here is another
-"#)
+"#
             ),
             Ok((
                 (""),
@@ -853,9 +851,9 @@ mod tests {
     fn test_parse_codeblock() {
         assert_eq!(
             parse_code_block(
-                (r#"```bash
+                r#"```bash
     pip install foobar
-```"#)
+```"#
             ),
             Ok((
                 (""),
@@ -870,13 +868,13 @@ mod tests {
         );
         assert_eq!(
             parse_code_block(
-                (r#"```python
+                r#"```python
     import foobar
 
     foobar.pluralize('word') # returns 'words'
     foobar.pluralize('goose') # returns 'geese'
     foobar.singularize('phenomena') # returns 'phenomenon'
-```"#)
+```"#
             ),
             Ok((
                 (""),
@@ -895,14 +893,14 @@ mod tests {
         );
         assert_eq!(
             parse_code_block(
-                (r#"```python
+                r#"```python
     import foobar
 
     foobar.pluralize('word') # returns 'words'
     foobar.pluralize('goose') # returns 'geese'
     foobar.singularize('phenomena') # returns 'phenomenon'
 ```
-And the rest is here"#)
+And the rest is here"#
             ),
             Ok((
                 ("And the rest is here"),
@@ -924,7 +922,7 @@ And the rest is here"#)
     #[test]
     fn test_parse_markdown() {
         assert_eq!(
-            parse_markdown((r#"And that is all folks!"#)),
+            parse_markdown(r#"And that is all folks!"#),
             Ok((
                 "",
                 vec![Markdown::Line(vec![MarkdownInline::Plaintext(
@@ -935,7 +933,7 @@ And the rest is here"#)
 
         assert_eq!(
             parse_markdown(
-                (r#"# Foobar
+                r#"# Foobar
 
 Foobar is a Python library for dealing with word pluralization.
 
@@ -952,7 +950,7 @@ foobar.pluralize('word') # returns 'words'
 foobar.pluralize('goose') # returns 'geese'
 foobar.singularize('phenomena') # returns 'phenomenon'
 ```
-And that is all folks!"#)
+And that is all folks!"#
             ),
             Ok((
                 "",

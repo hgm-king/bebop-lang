@@ -1,5 +1,3 @@
-use nom::AsBytes;
-
 use crate::markdown::{Markdown, MarkdownInline, MarkdownText};
 
 pub fn markdown_to_html(md: Markdown) -> String {
@@ -33,7 +31,7 @@ pub fn markdown_to_html(md: Markdown) -> String {
 
 fn text_to_html(md: MarkdownText) -> String {
     md.into_iter()
-        .map(|element| inline_to_html(element))
+        .map(inline_to_html)
         .collect::<String>()
 }
 
@@ -60,7 +58,7 @@ fn inline_to_html(md: MarkdownInline) -> String {
             std::str::from_utf8(text.as_bytes()).unwrap()
         ),
         MarkdownInline::Plaintext(text) => {
-            format!("{}", std::str::from_utf8(text.as_bytes()).unwrap())
+            std::str::from_utf8(text.as_bytes()).unwrap().to_string()
         }
     }
 }

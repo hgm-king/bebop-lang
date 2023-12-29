@@ -24,3 +24,12 @@ pub enum MarkdownInline {
     Italic(Bytes),
     Plaintext(Bytes),
 }
+
+pub fn markdown_to_html(md: Bytes) -> Result<String, String> {
+    let (_, md) = parser::parse_markdown(nombytes::NomBytes::new(md)).map_err(|e| {
+        println!("{:?}", e);
+        String::from("Not valid md")
+    })?;
+
+    Ok(md.into_iter().map(|md| html::markdown_to_html(md)).collect())
+}

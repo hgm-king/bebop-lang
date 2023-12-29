@@ -6,16 +6,8 @@ version = 3
 name = "bebop-lang"
 version = "0.1.2"
 dependencies = [
- "bytes",
  "nom",
- "nombytes",
 ]
-
-[[package]]
-name = "bytes"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 
 [[package]]
 name = "memchr"
@@ -37,14 +29,4 @@ checksum = "d273983c5a657a70a3e8f2a01329822f3b8c8172b73826411a55751e404a0a4a"
 dependencies = [
  "memchr",
  "minimal-lexical",
-]
-
-[[package]]
-name = "nombytes"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cd7e08f12bf507c19d3ee3aed694b65f6df15123fd80bce21436b021b2f7471"
-dependencies = [
- "bytes",
- "nom",
 ]

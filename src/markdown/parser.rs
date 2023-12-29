@@ -3,14 +3,13 @@ use crate::markdown::MarkdownInline;
 use crate::markdown::MarkdownText;
 
 use bytes::Bytes;
-use nom::combinator::all_consuming;
 use nombytes::NomBytes;
 
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag, take, take_while1},
     character::{is_digit, is_newline},
-    combinator::{eof, map, not, peek},
+    combinator::{eof, map, peek},
     error::{Error, ErrorKind},
     multi::{many0, many1, many_till},
     sequence::{delimited, pair, preceded, terminated, tuple},
@@ -25,7 +24,6 @@ pub fn parse_markdown(i: NomBytes) -> IResult<NomBytes, Vec<Markdown>> {
         map(parse_code_block, |e| Markdown::Codeblock(e.0, e.1)),
         map(parse_markdown_text, |e| Markdown::Line(e)),
         map(parse_markdown_inline, |e| Markdown::Line(vec![e])),
-        // map(eof, |e: NomBytes| Markdown::Line(vec![MarkdownInline::Plaintext(e.to_bytes())])),
     )))(i)
 }
 
@@ -81,24 +79,17 @@ fn parse_image(i: NomBytes) -> IResult<NomBytes, MarkdownInline> {
 fn parse_plaintext(i: NomBytes) -> IResult<NomBytes, MarkdownInline> {
     let (i, (vec, _)) = many_till(
         take(1u8),
-        alt((
-            peek(
-                alt((
-                    parse_boldtext,
-                    parse_italics,
-                    parse_inline_code,
-                    parse_image,
-                    parse_link,
-                    map(tag("\n"), |t: NomBytes| {
-                        MarkdownInline::Plaintext(t.to_bytes())
-                    }), 
-                    map(eof, |t: NomBytes| {
-                        MarkdownInline::Plaintext(t.to_bytes())
-                    })           
-                ))
-            ), 
-            
-        )),
+        alt((peek(alt((
+            parse_boldtext,
+            parse_italics,
+            parse_inline_code,
+            parse_image,
+            parse_link,
+            map(tag("\n"), |t: NomBytes| {
+                MarkdownInline::Plaintext(t.to_bytes())
+            }),
+            map(eof, |t: NomBytes| MarkdownInline::Plaintext(t.to_bytes())),
+        ))),)),
     )(i)?;
 
     if vec.len() == 0 {

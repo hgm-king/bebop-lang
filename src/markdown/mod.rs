@@ -1,10 +1,9 @@
+pub mod html;
 pub mod parser;
-
-pub type MarkdownText = Vec<MarkdownInline>;
 
 use bytes::Bytes;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Markdown {
     Heading(usize, MarkdownText),
     OrderedList(Vec<MarkdownText>),
@@ -14,7 +13,9 @@ pub enum Markdown {
     Lisp(Bytes),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+pub type MarkdownText = Vec<MarkdownInline>;
+
+#[derive(Debug, PartialEq)]
 pub enum MarkdownInline {
     Link(Bytes, Bytes),
     Image(Bytes, Bytes),

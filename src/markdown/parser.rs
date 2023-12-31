@@ -81,7 +81,7 @@ fn parse_plaintext(i: &str) -> IResult<&str, MarkdownInline> {
             parse_inline_code,
             parse_image,
             parse_link,
-            map(tag("\n"), |t: &str| {
+            map(alt((tag("\n\r"), tag("\n"))), |t: &str| {
                 MarkdownInline::Plaintext(t.to_string())
             }),
             map(eof, |t: &str| MarkdownInline::Plaintext(t.to_string())),
@@ -113,7 +113,7 @@ fn parse_markdown_inline(i: &str) -> IResult<&str, MarkdownInline> {
 }
 
 fn parse_markdown_text(i: &str) -> IResult<&str, MarkdownText> {
-    terminated(many0(parse_markdown_inline), tag("\n"))(i)
+    terminated(many0(parse_markdown_inline), alt((tag("\n\r"), tag("\n"))))(i)
 }
 
 // #*
@@ -163,9 +163,9 @@ fn parse_code_block(i: &str) -> IResult<&str, (String, String)> {
 fn parse_code_block_body(i: &str) -> IResult<&str, String> {
     map(
         delimited(
-            tag("\n"),
+            alt((tag("\n\r"), tag("\n"))),
             is_not("```"),
-            pair(tag("```"), alt((eof, tag("\n")))),
+            pair(tag("```"), alt((eof, alt((tag("\n\r"), tag("\n")))))),
         ),
         |s: &str| s.to_string(),
     )(i)
@@ -933,7 +933,7 @@ And the rest is here"#
 ## A little smaller
 
 ### Third level
-    
+
 #### Fourth level
 
 
@@ -961,7 +961,7 @@ look weird
                     Markdown::Heading(2, vec![MarkdownInline::Plaintext(String::from("A little smaller"))]), 
                     Markdown::Line(vec![]), 
                     Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Third level"))]), 
-                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("    "))]), 
+                    Markdown::Line(vec![]), 
                     Markdown::Heading(4, vec![MarkdownInline::Plaintext(String::from("Fourth level"))]), 
                     Markdown::Line(vec![]), 
                     Markdown::Line(vec![]), 
@@ -977,6 +977,35 @@ look weird
                 Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")), MarkdownInline::InlineCode(String::from("#FF4F00"))]), 
                 Markdown::Line(vec![]), 
                 Markdown::Codeblock(String::from("sql"), String::from("My codeblock goes here. why does it \n\nlook weird\n"))
+                ]
+            ))
+        );
+
+        assert_eq!(
+            parse_markdown("# Digitheque Design Inspiration\n\r## A little smaller\n\r\n\r### Third level\n\r\n\r#### Fourth level\n\r\n\r\n\r##### Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here.\n\rIn a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort.\n\r###### Lowest Level\n\r\n\r\n\r### Notes\n\r\n\rColors that could be cool are red `#892B39` and linen `#F5F1E6`\n\r\n\rInternational orange is another option: `#FF4F00`\n\r\n\r```sql\n\rMy codeblock goes here. why does it \n\r\n\rlook weird\n\r```\n\r"),
+            Ok((
+                "",
+                vec![
+                    Markdown::Heading(1, vec![MarkdownInline::Plaintext(String::from("Digitheque Design Inspiration"))]),
+                    Markdown::Heading(2, vec![MarkdownInline::Plaintext(String::from("A little smaller"))]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Third level"))]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Heading(4, vec![MarkdownInline::Plaintext(String::from("Fourth level"))]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Heading(5, vec![MarkdownInline::Plaintext(String::from("Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here."))]), 
+                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."))]), 
+                    Markdown::Heading(6, vec![MarkdownInline::Plaintext(String::from("Lowest Level"))]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Notes"))]), 
+                    Markdown::Line(vec![]), 
+                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("Colors that could be cool are red ")), MarkdownInline::InlineCode(String::from("#892B39")), MarkdownInline::Plaintext(String::from(" and linen ")), MarkdownInline::InlineCode(String::from("#F5F1E6"))]), 
+                Markdown::Line(vec![]), 
+                Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")), MarkdownInline::InlineCode(String::from("#FF4F00"))]), 
+                Markdown::Line(vec![]), 
+                Markdown::Codeblock(String::from("sql"), String::from("My codeblock goes here. why does it \n\r\n\rlook weird\n\r"))
                 ]
             ))
         );

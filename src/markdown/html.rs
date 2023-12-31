@@ -25,7 +25,7 @@ pub fn markdown_to_html(md: Markdown) -> String {
             std::str::from_utf8(code.as_bytes()).unwrap()
         ),
         Markdown::Line(text) => {
-            if text.len() == 0 {
+            if text.is_empty() {
                 String::from("<hr />")
             } else {
                 format!("<p>{}</p>", text_to_html(text))

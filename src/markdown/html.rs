@@ -24,15 +24,19 @@ pub fn markdown_to_html(md: Markdown) -> String {
             std::str::from_utf8(lang.as_bytes()).unwrap(),
             std::str::from_utf8(code.as_bytes()).unwrap()
         ),
-        Markdown::Line(text) => format!("<p>{}</p>", text_to_html(text)),
+        Markdown::Line(text) => {
+            if text.len() == 0 {
+                String::from("<hr />")
+            } else {
+                format!("<p>{}</p>", text_to_html(text))
+            }
+        }
         Markdown::Lisp(lisp) => format!("<p>{}</p>", std::str::from_utf8(lisp.as_bytes()).unwrap()),
     }
 }
 
 fn text_to_html(md: MarkdownText) -> String {
-    md.into_iter()
-        .map(inline_to_html)
-        .collect::<String>()
+    md.into_iter().map(inline_to_html).collect::<String>()
 }
 
 fn inline_to_html(md: MarkdownInline) -> String {

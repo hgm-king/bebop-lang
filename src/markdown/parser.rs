@@ -81,7 +81,7 @@ fn parse_plaintext(i: &str) -> IResult<&str, MarkdownInline> {
             parse_inline_code,
             parse_image,
             parse_link,
-            map(alt((tag("\n\r"), tag("\n"))), |t: &str| {
+            map(alt((tag("\r\n"), tag("\n"))), |t: &str| {
                 MarkdownInline::Plaintext(t.to_string())
             }),
             map(eof, |t: &str| MarkdownInline::Plaintext(t.to_string())),
@@ -113,7 +113,7 @@ fn parse_markdown_inline(i: &str) -> IResult<&str, MarkdownInline> {
 }
 
 fn parse_markdown_text(i: &str) -> IResult<&str, MarkdownText> {
-    terminated(many0(parse_markdown_inline), alt((tag("\n\r"), tag("\n"))))(i)
+    terminated(many0(parse_markdown_inline), alt((tag("\r\n"), tag("\n"))))(i)
 }
 
 // #*
@@ -163,9 +163,9 @@ fn parse_code_block(i: &str) -> IResult<&str, (String, String)> {
 fn parse_code_block_body(i: &str) -> IResult<&str, String> {
     map(
         delimited(
-            alt((tag("\n\r"), tag("\n"))),
+            alt((tag("\r\n"), tag("\n"))),
             is_not("```"),
-            pair(tag("```"), alt((eof, alt((tag("\n\r"), tag("\n")))))),
+            pair(tag("```"), alt((eof, alt((tag("\r\n"), tag("\n")))))),
         ),
         |s: &str| s.to_string(),
     )(i)
@@ -982,7 +982,7 @@ look weird
         );
 
         assert_eq!(
-            parse_markdown("# Digitheque Design Inspiration\n\r## A little smaller\n\r\n\r### Third level\n\r\n\r#### Fourth level\n\r\n\r\n\r##### Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here.\n\rIn a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort.\n\r###### Lowest Level\n\r\n\r\n\r### Notes\n\r\n\rColors that could be cool are red `#892B39` and linen `#F5F1E6`\n\r\n\rInternational orange is another option: `#FF4F00`\n\r\n\r```sql\n\rMy codeblock goes here. why does it \n\r\n\rlook weird\n\r```\n\r"),
+            parse_markdown("# Digitheque Design Inspiration\r\n## A little smaller\r\n\r\n### Third level\r\n\r\n#### Fourth level\r\n\r\n\r\n##### Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here.\r\nIn a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort.\r\n###### Lowest Level\r\n\r\n\r\n### Notes\r\n\r\nColors that could be cool are red `#892B39` and linen `#F5F1E6`\r\n\r\nInternational orange is another option: `#FF4F00`\r\n\r\n```sql\r\nMy codeblock goes here. why does it \r\n\r\nlook weird\r\n```\r\n"),
             Ok((
                 "",
                 vec![
@@ -1005,7 +1005,7 @@ look weird
                 Markdown::Line(vec![]), 
                 Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")), MarkdownInline::InlineCode(String::from("#FF4F00"))]), 
                 Markdown::Line(vec![]), 
-                Markdown::Codeblock(String::from("sql"), String::from("My codeblock goes here. why does it \n\r\n\rlook weird\n\r"))
+                Markdown::Codeblock(String::from("sql\r"), String::from("My codeblock goes here. why does it \r\n\r\nlook weird\r\n"))
                 ]
             ))
         );

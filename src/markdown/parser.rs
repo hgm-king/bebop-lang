@@ -501,7 +501,7 @@ mod tests {
         );
         assert_eq!(
                 parse_markdown_text("here is some plaintext *but what if we italicize?* I guess it doesnt **matter** in my `code`\n"),
-                Ok(((""), vec![
+                Ok(((""),vec![
                     MarkdownInline::Plaintext(String::from("here is some plaintext ")),
                     MarkdownInline::Italic(String::from("but what if we italicize?")),
                     MarkdownInline::Plaintext(String::from(" I guess it doesnt ")),
@@ -958,25 +958,25 @@ look weird
                 "",
                 vec![
                     Markdown::Heading(1, vec![MarkdownInline::Plaintext(String::from("Digitheque Design Inspiration"))]),
-                    Markdown::Heading(2, vec![MarkdownInline::Plaintext(String::from("A little smaller"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Third level"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(4, vec![MarkdownInline::Plaintext(String::from("Fourth level"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(5, vec![MarkdownInline::Plaintext(String::from("Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here."))]), 
-                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."))]), 
-                    Markdown::Heading(6, vec![MarkdownInline::Plaintext(String::from("Lowest Level"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Notes"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("Colors that could be cool are red ")), MarkdownInline::InlineCode(String::from("#892B39")), MarkdownInline::Plaintext(String::from(" and linen ")), MarkdownInline::InlineCode(String::from("#F5F1E6"))]), 
-                Markdown::Line(vec![]), 
-                Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")), MarkdownInline::InlineCode(String::from("#FF4F00"))]), 
-                Markdown::Line(vec![]), 
-                Markdown::Codeblock(String::from("sql"), String::from("My codeblock goes here. why does it \n\nlook weird\n"))
+                    Markdown::Heading(2, vec![MarkdownInline::Plaintext(String::from("A little smaller"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Third level"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(4, vec![MarkdownInline::Plaintext(String::from("Fourth level"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(5, vec![MarkdownInline::Plaintext(String::from("Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here."))]),
+                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."))]),
+                    Markdown::Heading(6, vec![MarkdownInline::Plaintext(String::from("Lowest Level"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Notes"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("Colors that could be cool are red ")),MarkdownInline::InlineCode(String::from("#892B39")),MarkdownInline::Plaintext(String::from(" and linen ")),MarkdownInline::InlineCode(String::from("#F5F1E6"))]),
+                Markdown::Line(vec![]),
+                Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")),MarkdownInline::InlineCode(String::from("#FF4F00"))]),
+                Markdown::Line(vec![]),
+                Markdown::Codeblock(String::from("sql"),String::from("My codeblock goes here. why does it \n\nlook weird\n"))
                 ]
             ))
         );
@@ -987,25 +987,25 @@ look weird
                 "",
                 vec![
                     Markdown::Heading(1, vec![MarkdownInline::Plaintext(String::from("Digitheque Design Inspiration"))]),
-                    Markdown::Heading(2, vec![MarkdownInline::Plaintext(String::from("A little smaller"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Third level"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(4, vec![MarkdownInline::Plaintext(String::from("Fourth level"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(5, vec![MarkdownInline::Plaintext(String::from("Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here."))]), 
-                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."))]), 
-                    Markdown::Heading(6, vec![MarkdownInline::Plaintext(String::from("Lowest Level"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Notes"))]), 
-                    Markdown::Line(vec![]), 
-                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("Colors that could be cool are red ")), MarkdownInline::InlineCode(String::from("#892B39")), MarkdownInline::Plaintext(String::from(" and linen ")), MarkdownInline::InlineCode(String::from("#F5F1E6"))]), 
-                Markdown::Line(vec![]), 
-                Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")), MarkdownInline::InlineCode(String::from("#FF4F00"))]), 
-                Markdown::Line(vec![]), 
-                Markdown::Codeblock(String::from("sql\r"), String::from("My codeblock goes here. why does it \r\n\r\nlook weird\r\n"))
+                    Markdown::Heading(2, vec![MarkdownInline::Plaintext(String::from("A little smaller"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Third level"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(4, vec![MarkdownInline::Plaintext(String::from("Fourth level"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(5, vec![MarkdownInline::Plaintext(String::from("Fifth level, what if this was really long and we were able to cross over lines more than once. Lets try tha tby typig a lot here."))]),
+                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, filled with the ends of worms and an oozy smell, nor yet a dry, bare, sandy hole with nothing in it to sit down on or to eat: it was a hobbit-hole, and that means comfort."))]),
+                    Markdown::Heading(6, vec![MarkdownInline::Plaintext(String::from("Lowest Level"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Line(vec![]),
+                    Markdown::Heading(3, vec![MarkdownInline::Plaintext(String::from("Notes"))]),
+                    Markdown::Line(vec![]),
+                    Markdown::Line(vec![MarkdownInline::Plaintext(String::from("Colors that could be cool are red ")),MarkdownInline::InlineCode(String::from("#892B39")),MarkdownInline::Plaintext(String::from(" and linen ")),MarkdownInline::InlineCode(String::from("#F5F1E6"))]),
+                Markdown::Line(vec![]),
+                Markdown::Line(vec![MarkdownInline::Plaintext(String::from("International orange is another option: ")),MarkdownInline::InlineCode(String::from("#FF4F00"))]),
+                Markdown::Line(vec![]),
+                Markdown::Codeblock(String::from("sql\r"),String::from("My codeblock goes here. why does it \r\n\r\nlook weird\r\n"))
                 ]
             ))
         );

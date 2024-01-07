@@ -185,14 +185,9 @@ fn parse_code_block_lang(i: &str) -> IResult<&str, String> {
 }
 
 fn parse_lisp(i: &str) -> IResult<&str, String> {
-    map(
-        delimited(
-            tag("|"),
-            is_not("|"),
-            tag("|")
-        ),
-        |s: &str| s.to_string(),
-    )(i)
+    map(delimited(tag("|"), is_not("|"), tag("|")), |s: &str| {
+        s.to_string()
+    })(i)
 }
 
 #[cfg(test)]

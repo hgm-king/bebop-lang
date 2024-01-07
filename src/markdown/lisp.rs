@@ -47,7 +47,7 @@ fn inline_to_lisp(md: MarkdownInline) -> String {
             format!("(i \"{}\") ", std::str::from_utf8(text.as_bytes()).unwrap())
         }
         MarkdownInline::Link(text, href) => format!(
-            "(a \"{}\" {}) ",
+            "(a \"{}\" \"{}\") ",
             std::str::from_utf8(href.as_bytes()).unwrap(),
             std::str::from_utf8(text.as_bytes()).unwrap()
         ),
@@ -63,6 +63,6 @@ fn inline_to_lisp(md: MarkdownInline) -> String {
         MarkdownInline::Plaintext(text) => format!(
             "\"{}\" ",
             std::str::from_utf8(text.as_bytes()).unwrap().to_string()
-        )
+        ),
     }
 }

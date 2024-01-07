@@ -12,18 +12,18 @@ fn main() -> Result<()> {
                 rl.add_history_entry(line.as_str());
                 let v = bebop_lang::lisp::lisp(&mut env, &line.as_str());
                 println!("{}", v);
-            },
+            }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
-                break
-            },
+                break;
+            }
             Err(ReadlineError::Eof) => {
                 println!("CTRL-D");
-                break
-            },
+                break;
+            }
             Err(err) => {
                 println!("Error: {:?}", err);
-                break
+                break;
             }
         }
     }

@@ -153,8 +153,7 @@ We choose to stick to a plain black, white, and red color scheme to envoke the o
 1. def
 "#;
 
-
-// let x = r#"|concat "abc"|"#;
+    // let x = r#"|concat "abc"|"#;
 
     let md = bebop_lang::markdown::markdown_to_lisp(x).unwrap();
     println!("{}", md);

@@ -80,7 +80,7 @@ impl fmt::Debug for Lval {
                     .join(" ")
             ),
             Lval::Fun(_) => write!(f, "builtin"),
-            Lval::Str(s) => write!(f, "\"{}\"", s),
+            Lval::Str(s) => write!(f, "{}", s),
             Lval::Lambda(l) => write!(
                 f,
                 "(\\ [{}] [{}])",

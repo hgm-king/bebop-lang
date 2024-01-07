@@ -1,4 +1,5 @@
 pub mod html;
+pub mod lisp;
 pub mod parser;
 
 #[derive(Debug, PartialEq)]
@@ -30,4 +31,13 @@ pub fn markdown_to_html(md: &str) -> Result<String, String> {
     })?;
 
     Ok(md.into_iter().map(html::markdown_to_html).collect())
+}
+
+pub fn markdown_to_lisp(md: &str) -> Result<String, String> {
+    let (_, md) = parser::parse_markdown(md).map_err(|e| {
+        println!("{:?}", e);
+        String::from("Not valid md")
+    })?;
+
+    Ok(md.into_iter().map(lisp::markdown_to_lisp).collect())
 }

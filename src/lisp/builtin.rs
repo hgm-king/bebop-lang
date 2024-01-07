@@ -390,7 +390,7 @@ fn builtin_concat(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
         return Err(Lerr::new(
             LerrType::IncorrectParamCount,
             format!(
-                "Function join needed >= 1 arg but was given {}",
+                "Function concat needed >= 1 arg but was given {}",
                 operands.len()
             ),
         ));
@@ -403,7 +403,7 @@ fn builtin_concat(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
         .collect::<Option<Vec<_>>>()
         .ok_or(Lerr::new(
             LerrType::WrongType,
-            format!("Function join needed Strings but was given"),
+            format!("Function concat needed Strings but was given"),
         ))?;
 
     // push each elements from each arguements into one string
@@ -472,7 +472,7 @@ fn builtin_assign(sym: &str, env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval
         }
     }
 
-    Ok(Lval::Sexpr(vec![]))
+    Ok(Lval::Str(String::from("")))
 }
 
 fn builtin_lambda(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {

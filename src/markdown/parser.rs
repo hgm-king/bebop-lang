@@ -19,6 +19,7 @@ pub fn parse_markdown(i: &str) -> IResult<&str, Vec<Markdown>> {
         map(parse_unordered_list, Markdown::UnorderedList),
         map(parse_ordered_list, Markdown::OrderedList),
         map(parse_code_block, |e| Markdown::Codeblock(e.0, e.1)),
+        map(parse_lisp, |e| Markdown::Lisp(e)),
         map(parse_markdown_text, Markdown::Line),
         map(parse_markdown_inline, |e| Markdown::Line(vec![e])),
     )))(i)
@@ -181,6 +182,17 @@ fn parse_code_block_lang(i: &str) -> IResult<&str, String> {
         ),
         map(tag("```"), |_| String::from("__UNKNOWN__")),
     ))(i)
+}
+
+fn parse_lisp(i: &str) -> IResult<&str, String> {
+    map(
+        delimited(
+            tag("|"),
+            is_not("|"),
+            tag("|")
+        ),
+        |s: &str| s.to_string(),
+    )(i)
 }
 
 #[cfg(test)]

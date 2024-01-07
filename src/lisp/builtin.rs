@@ -365,7 +365,7 @@ fn builtin_echo(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     }
 
     let arg = &operands[0];
-    Ok(Lval::Str(format!("{:?}", arg)))
+    Ok(Lval::Str(format!("\"{:?}\"", arg)))
 }
 
 fn builtin_join(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {

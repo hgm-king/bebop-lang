@@ -22,6 +22,7 @@ pub fn init_builtins(env: &mut Lenv) {
     add_builtin(env, "=", builtin_var);
 
     add_builtin(env, "if", builtin_if);
+    add_builtin(env, "echo", builtin_echo);
 
     add_builtin(env, "die", builtin_err);
 
@@ -349,6 +350,22 @@ fn builtin_eval(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
         Lval::Qexpr(qexpr) => eval::eval(env, Lval::Sexpr(qexpr[..].to_vec())),
         _ => eval::eval(env, arg.clone()),
     }
+}
+
+fn builtin_echo(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
+    // we only want to evaluate one arguement
+    if operands.len() != 1 {
+        return Err(Lerr::new(
+            LerrType::IncorrectParamCount,
+            format!(
+                "Function echo needed 1 arg but was given {}",
+                operands.len()
+            ),
+        ));
+    }
+
+    let arg = &operands[0];
+    Ok(Lval::Str(format!("{:?}", arg)))
 }
 
 fn builtin_join(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {

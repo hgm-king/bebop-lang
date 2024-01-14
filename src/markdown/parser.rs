@@ -16,9 +16,9 @@ use nom::{
 pub fn parse_markdown(i: &str) -> IResult<&str, Vec<Markdown>> {
     many1(alt((
         map(parse_header, |e| Markdown::Heading(e.0, e.1)),
+        map(parse_item_list, Markdown::TaskList),
         map(parse_unordered_list, Markdown::UnorderedList),
         map(parse_ordered_list, Markdown::OrderedList),
-        map(parse_item_list, Markdown::TaskList),
         map(parse_code_block, |e| Markdown::Codeblock(e.0, e.1)),
         map(parse_lisp, |e| Markdown::Lisp(e)),
         map(parse_blockquote, |e| Markdown::Blockquote(e)),

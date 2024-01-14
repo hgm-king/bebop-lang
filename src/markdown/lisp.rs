@@ -23,7 +23,7 @@ pub fn markdown_to_lisp(md: Markdown) -> String {
                 .collect::<String>()
         ),
         Markdown::TaskList(elements) => format!(
-            "(ul\n(concat {}))\n",
+            "(tasks\n(concat {}))\n",
             elements
                 .into_iter()
                 .map(|(checked, element)| if checked == true {
@@ -34,7 +34,7 @@ pub fn markdown_to_lisp(md: Markdown) -> String {
                 .collect::<String>()
         ),
         Markdown::Codeblock(_, code) => format!(
-            "(pre (code \"{}\"))\n",
+            "(pre \"{}\")\n",
             std::str::from_utf8(code.as_bytes()).unwrap()
         ),
         Markdown::Line(text) => {

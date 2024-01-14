@@ -7,8 +7,11 @@ pub enum Markdown {
     Heading(usize, MarkdownText),
     OrderedList(Vec<MarkdownText>),
     UnorderedList(Vec<MarkdownText>),
+    TaskList(Vec<(bool, MarkdownText)>),
     Line(MarkdownText),
     Codeblock(String, String),
+    Blockquote(MarkdownText),
+    HorizontalRule,
     Lisp(String),
 }
 
@@ -17,11 +20,14 @@ pub type MarkdownText = Vec<MarkdownInline>;
 #[derive(Debug, PartialEq)]
 pub enum MarkdownInline {
     Link(String, String),
+    ExternalLink(String, String),
     Image(String, String),
     InlineCode(String),
     Bold(String),
     Italic(String),
     Plaintext(String),
+    Strikethrough(String),
+    Color(String),
 }
 
 pub fn markdown_to_html(md: &str) -> Result<String, String> {

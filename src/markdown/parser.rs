@@ -18,8 +18,11 @@ pub fn parse_markdown(i: &str) -> IResult<&str, Vec<Markdown>> {
         map(parse_header, |e| Markdown::Heading(e.0, e.1)),
         map(parse_unordered_list, Markdown::UnorderedList),
         map(parse_ordered_list, Markdown::OrderedList),
+        map(parse_item_list, Markdown::TaskList),
         map(parse_code_block, |e| Markdown::Codeblock(e.0, e.1)),
         map(parse_lisp, |e| Markdown::Lisp(e)),
+        map(parse_blockquote, |e| Markdown::Blockquote(e)),
+        map(parse_horizontal_rule, |_| Markdown::HorizontalRule),
         map(parse_markdown_text, Markdown::Line),
         map(parse_markdown_inline, |e| Markdown::Line(vec![e])),
     )))(i)
@@ -46,6 +49,17 @@ fn parse_inline_code(i: &str) -> IResult<&str, MarkdownInline> {
     })(i)
 }
 
+// \^\[[^\]]+\]\([^\)]\)
+fn parse_external_link(i: &str) -> IResult<&str, MarkdownInline> {
+    map(
+        pair(
+            delimited(tag("^["), is_not("]"), tag("]")),
+            delimited(tag("("), is_not(")"), tag(")")),
+        ),
+        |(b, c): (&str, &str)| MarkdownInline::ExternalLink(b.to_string(), c.to_string()),
+    )(i)
+}
+
 // \[[^\]]+\]\([^\)]\)
 fn parse_link(i: &str) -> IResult<&str, MarkdownInline> {
     map(
@@ -68,6 +82,21 @@ fn parse_image(i: &str) -> IResult<&str, MarkdownInline> {
     )(i)
 }
 
+// ~~[^~~]+~~
+fn parse_strikethrough(i: &str) -> IResult<&str, MarkdownInline> {
+    map(delimited(tag("~~"), is_not("~~"), tag("~~")), |b: &str| {
+        MarkdownInline::Strikethrough(b.to_string())
+    })(i)
+}
+
+// #123456
+fn parse_color(i: &str) -> IResult<&str, MarkdownInline> {
+    map(preceded(tag("#"), take(6_usize))
+        , |b: &str| {
+        MarkdownInline::Color(b.to_string())
+    })(i)
+}
+
 // // we want to match many things that are not any of our special tags
 // // but since we have no tools available to match and consume in the negative case (without regex)
 // // we need to match against our tags, then consume one char
@@ -81,7 +110,10 @@ fn parse_plaintext(i: &str) -> IResult<&str, MarkdownInline> {
             parse_italics,
             parse_inline_code,
             parse_image,
+            parse_external_link,
             parse_link,
+            parse_color,
+            parse_strikethrough,
             map(alt((tag("\r\n"), tag("\n"))), |t: &str| {
                 MarkdownInline::Plaintext(t.to_string())
             }),
@@ -115,6 +147,10 @@ fn parse_markdown_inline(i: &str) -> IResult<&str, MarkdownInline> {
 
 fn parse_markdown_text(i: &str) -> IResult<&str, MarkdownText> {
     terminated(many0(parse_markdown_inline), alt((tag("\r\n"), tag("\n"))))(i)
+}
+// ---\r?\n
+fn parse_horizontal_rule(i: &str) -> IResult<&str, ()> {
+    map(alt((tag("---\r\n"), tag("---\n"))), |_| ())(i)
 }
 
 // #*
@@ -155,6 +191,29 @@ fn parse_ordered_list_element(i: &str) -> IResult<&str, MarkdownText> {
 
 fn parse_ordered_list(i: &str) -> IResult<&str, Vec<MarkdownText>> {
     many1(parse_ordered_list_element)(i)
+}
+
+fn parse_item_list_tag(i: &str) -> IResult<&str, bool> {
+    alt((
+        map(preceded(tag("- "), tag("[ ]")), |_| false),
+        map(preceded(tag("- "), tag("[x]")), |_| true),
+    ))(i)
+}
+
+fn parse_item_list_element(i: &str) -> IResult<&str, (bool, MarkdownText)> {
+    tuple((parse_item_list_tag, parse_markdown_text))(i)
+}
+
+fn parse_item_list(i: &str) -> IResult<&str, Vec<(bool, MarkdownText)>> {
+    many1(parse_item_list_element)(i)
+}
+
+fn parse_blockquote(i: &str) -> IResult<&str, MarkdownText> {
+    delimited(
+        tag("> "),
+        parse_markdown_text,
+        alt((tag("\r\n"), tag("\n"))),
+    )(i)
 }
 
 fn parse_code_block(i: &str) -> IResult<&str, (String, String)> {

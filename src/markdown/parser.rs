@@ -93,7 +93,7 @@ fn parse_strikethrough(i: &str) -> IResult<&str, MarkdownInline> {
 fn parse_color(i: &str) -> IResult<&str, MarkdownInline> {
     map(preceded(tag("#"), take(6_usize))
         , |b: &str| {
-        MarkdownInline::Color(b.to_string())
+        MarkdownInline::Color(format!("#{}", b))
     })(i)
 }
 
@@ -142,12 +142,15 @@ fn parse_markdown_inline(i: &str) -> IResult<&str, MarkdownInline> {
         parse_image,
         parse_link,
         parse_plaintext,
+        parse_strikethrough,
+        parse_color
     ))(i)
 }
 
 fn parse_markdown_text(i: &str) -> IResult<&str, MarkdownText> {
     terminated(many0(parse_markdown_inline), alt((tag("\r\n"), tag("\n"))))(i)
 }
+
 // ---\r?\n
 fn parse_horizontal_rule(i: &str) -> IResult<&str, ()> {
     map(alt((tag("---\r\n"), tag("---\n"))), |_| ())(i)
@@ -167,7 +170,7 @@ fn parse_header(i: &str) -> IResult<&str, (usize, MarkdownText)> {
 }
 
 fn parse_unordered_list_tag(i: &str) -> IResult<&str, &str> {
-    terminated(tag("-"), tag(" "))(i)
+    tag("- ")(i)
 }
 
 fn parse_unordered_list_element(i: &str) -> IResult<&str, MarkdownText> {
@@ -195,8 +198,8 @@ fn parse_ordered_list(i: &str) -> IResult<&str, Vec<MarkdownText>> {
 
 fn parse_item_list_tag(i: &str) -> IResult<&str, bool> {
     alt((
-        map(preceded(tag("- "), tag("[ ]")), |_| false),
-        map(preceded(tag("- "), tag("[x]")), |_| true),
+        map(tag("- [ ] "), |_| false),
+        map(tag("- [x] "), |_| true),
     ))(i)
 }
 
@@ -566,11 +569,15 @@ mod tests {
             ))
         );
         assert_eq!(
-                parse_markdown_text("here is some plaintext *but what if we italicize?* I guess it doesnt **matter** in my `code`\n"),
+                parse_markdown_text("here is some #00ff00 plaintext *but what if we italicize?* I guess it ~~doesnt~~ **matter** in my `code`\n"),
                 Ok(((""),vec![
-                    MarkdownInline::Plaintext(String::from("here is some plaintext ")),
+                    MarkdownInline::Plaintext(String::from("here is some ")),
+                    MarkdownInline::Color(String::from("#00ff00")),
+                    MarkdownInline::Plaintext(String::from(" plaintext ")),
                     MarkdownInline::Italic(String::from("but what if we italicize?")),
-                    MarkdownInline::Plaintext(String::from(" I guess it doesnt ")),
+                    MarkdownInline::Plaintext(String::from(" I guess it ")),
+                    MarkdownInline::Strikethrough(String::from("doesnt")),
+                    MarkdownInline::Plaintext(String::from(" ")),
                     MarkdownInline::Bold(String::from("matter")),
                     MarkdownInline::Plaintext(String::from(" in my ")),
                     MarkdownInline::InlineCode(String::from("code")),
@@ -673,29 +680,29 @@ mod tests {
 
     #[test]
     fn test_parse_unordered_list_tag() {
-        assert_eq!(parse_unordered_list_tag("- "), Ok(((""), ("-"))));
+        assert_eq!(parse_unordered_list_tag("- "), Ok(((""), ("- "))));
         assert_eq!(
             parse_unordered_list_tag("- and some more"),
-            Ok((("and some more"), ("-")))
+            Ok((("and some more"), ("- ")))
         );
         assert_eq!(
             parse_unordered_list_tag("-"),
             Err(NomErr::Error(Error {
-                input: (""),
+                input: ("-"),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
             parse_unordered_list_tag("-and some more"),
             Err(NomErr::Error(Error {
-                input: ("and some more"),
+                input: ("-and some more"),
                 code: ErrorKind::Tag
             }))
         );
         assert_eq!(
             parse_unordered_list_tag("--"),
             Err(NomErr::Error(Error {
-                input: ("-"),
+                input: ("--"),
                 code: ErrorKind::Tag
             }))
         );
@@ -745,7 +752,7 @@ mod tests {
         assert_eq!(
             parse_unordered_list_element("-"),
             Err(NomErr::Error(Error {
-                input: (""),
+                input: ("-"),
                 code: ErrorKind::Tag
             }))
         );
@@ -905,6 +912,36 @@ mod tests {
                         "this is an element"
                     ))),
                     vec![MarkdownInline::Plaintext(String::from("here is another"))]
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_item_list() {
+        assert!(parse_item_list("- this is an element").is_err());
+        assert_eq!(
+            parse_item_list("- [ ] this is an element\n"),
+            Ok((
+                (""),
+                vec![(false, vec![MarkdownInline::Plaintext(String::from(
+                    "this is an element"
+                ))])]
+            ))
+        );
+        assert_eq!(
+            parse_item_list(
+                r#"- [x] this is an element
+- [ ] here is another
+"#
+            ),
+            Ok((
+                (""),
+                vec![
+                    (true, vec![MarkdownInline::Plaintext(String::from(
+                        "this is an element"
+                    ))]),
+                    (false, vec![MarkdownInline::Plaintext(String::from("here is another"))])
                 ]
             ))
         );

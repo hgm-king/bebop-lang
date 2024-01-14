@@ -32,6 +32,7 @@ fn eval_sexpression(env: &mut Lenv, sexpr: Vec<Lval>) -> Result<Lval, Lerr> {
         // if singular value return singular value
         let op = results[0].clone();
         match op {
+            Lval::Fun(fun) => fun(env, vec![]),
             Lval::Lambda(lambda) => call(env, lambda, vec![]),
             _ => Ok(op),
         }

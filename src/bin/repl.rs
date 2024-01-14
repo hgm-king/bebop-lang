@@ -9,7 +9,7 @@ fn main() -> Result<()> {
         let readline = rl.readline(">> ");
         match readline {
             Ok(line) => {
-                rl.add_history_entry(line.as_str());
+                rl.add_history_entry(line.as_str())?;
                 let v = bebop_lang::lisp::lisp(&mut env, &line.as_str());
                 println!("{}", v);
             }

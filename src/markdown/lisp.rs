@@ -20,7 +20,7 @@ pub fn markdown_to_lisp(md: Markdown) -> String {
                 .collect::<String>()
         ),
         Markdown::Codeblock(_, code) => format!(
-            "(pre (code {}))\n",
+            "(pre (code \"{}\"))\n",
             std::str::from_utf8(code.as_bytes()).unwrap()
         ),
         Markdown::Line(text) => {

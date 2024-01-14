@@ -39,7 +39,7 @@ pub fn markdown_to_lisp(md: Markdown) -> String {
         ),
         Markdown::Line(text) => {
             if text.is_empty() {
-                String::from("empty\n")
+                String::from("(empty)\n")
             } else {
                 format!("(p (concat {}))\n", text_to_lisp(text))
             }

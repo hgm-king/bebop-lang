@@ -2,8 +2,6 @@ use crate::lisp::{
     add_builtin, eval, to_num, to_qexpr, to_str, to_sym, Lenv, Lerr, LerrType, Llambda, Lval,
 };
 
-use tiny_rng::{Rand, Rng};
-
 pub fn init_builtins(env: &mut Lenv) {
     add_builtin(env, "!", builtin_not);
     add_builtin(env, "+", builtin_add);
@@ -25,7 +23,6 @@ pub fn init_builtins(env: &mut Lenv) {
 
     add_builtin(env, "if", builtin_if);
     add_builtin(env, "echo", builtin_echo);
-    add_builtin(env, "rand", builtin_rand);
 
     add_builtin(env, "die", builtin_err);
 
@@ -215,23 +212,6 @@ fn builtin_mod(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
 
 fn builtin_div(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     builtin_op("/", operands)
-}
-
-fn builtin_rand(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
-    if operands.len() != 0 {
-        return Err(Lerr::new(
-            LerrType::IncorrectParamCount,
-            format!("Function if needed 0 arg but was given {}", operands.len()),
-        ));
-    }
-
-    let mut rng = Rng::from_seed(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("Time went backwards")
-            .as_millis() as u64,
-    );
-    Ok(Lval::Num(rng.rand_f64()))
 }
 
 fn builtin_if(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {

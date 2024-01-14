@@ -4,11 +4,10 @@ version = 3
 
 [[package]]
 name = "bebop-lang"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "nom",
  "rustyline",
- "tiny-rng",
 ]
 
 [[package]]
@@ -184,12 +183,6 @@ name = "smallvec"
 version = "1.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
-
-[[package]]
-name = "tiny-rng"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d63628286617a0c67ee3c4ef92ccf62044e3813ed7376bb82a4586d2ff7974dd"
 
 [[package]]
 name = "unicode-segmentation"

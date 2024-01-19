@@ -1,3 +1,5 @@
+use bebop_lang::lisp::{Compile, Lisp};
+
 fn main() {
     let x = r#"|concat
 
@@ -159,6 +161,6 @@ We choose to stick to a plain black, white, and red color scheme to envoke the o
     println!("{}", md);
     let mut env = bebop_lang::lisp::env::init_env();
 
-    let v = bebop_lang::lisp::lisp(&mut env, &md);
-    println!("{}", v);
+    let v = Lisp::from_source(&mut env, &md);
+    println!("{:?}", v);
 }

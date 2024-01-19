@@ -7,7 +7,7 @@ use nom::{
     bytes::complete::{is_not, tag, take, take_while1},
     character::{is_digit, is_newline},
     combinator::{eof, map, peek},
-    error::{Error, ErrorKind},
+    error::{context, convert_error, Error, ContextError, ErrorKind, ParseError, VerboseError},
     multi::{many0, many1, many_till},
     sequence::{delimited, pair, preceded, terminated, tuple},
     Err as NomErr, IResult,

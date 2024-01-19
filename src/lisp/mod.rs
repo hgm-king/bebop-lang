@@ -12,42 +12,59 @@ pub enum Lval {
     Num(f64),
     Sexpr(Vec<Lval>),
     Qexpr(Vec<Lval>),
-    Fun(Lfun),
+    Fun(String, Lfun),
     Lambda(Llambda),
     Str(String),
 }
 
 impl PartialEq for Lval {
     fn eq(&self, other: &Self) -> bool {
-        match self {
-            Lval::Sym(a) => match other {
-                Lval::Sym(b) => a == b,
-                _ => false,
-            },
-            Lval::Num(a) => match other {
-                Lval::Num(b) => a == b,
-                _ => false,
-            },
-            Lval::Sexpr(a) => match other {
-                Lval::Sexpr(b) => a == b,
-                _ => false,
-            },
-            Lval::Qexpr(a) => match other {
-                Lval::Qexpr(b) => a == b,
-                _ => false,
-            },
-            Lval::Fun(_) => match other {
-                Lval::Fun(_) => true,
-                _ => false,
-            },
-            Lval::Str(_) => match other {
-                Lval::Str(_) => true,
-                _ => false,
-            },
-            Lval::Lambda(a) => match other {
-                Lval::Lambda(b) => a.body == b.body && a.args == b.args,
-                _ => false,
-            },
+        match (self, other) {
+            (Lval::Sym(a), Lval::Sym(b)) => a == b,
+            (Lval::Num(a), Lval::Num(b)) => a == b,
+            (Lval::Sexpr(a), Lval::Sexpr(b)) => a == b,
+            (Lval::Qexpr(a), Lval::Qexpr(b)) => a == b,
+            (Lval::Fun(a, _), Lval::Fun(b, _)) => a == b,
+            (Lval::Str(a), Lval::Str(b)) => a == b,
+            (Lval::Lambda(a), Lval::Lambda(b)) => a.body == b.body && a.args == b.args,
+            _ => false,
+        }
+    }
+}
+
+impl fmt::Display for Lval {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Lval::Sym(s) => write!(f, "{}", s),
+            Lval::Num(n) => write!(f, "{}", n),
+            Lval::Sexpr(s) => write!(
+                f,
+                "( {} )",
+                s.iter()
+                    .map(|x| format!("{}", x))
+                    .collect::<Vec<String>>()
+                    .join(" ")
+            ),
+            Lval::Qexpr(q) => write!(
+                f,
+                "[ {} ]",
+                q.iter()
+                    .map(|x| format!("{}", x))
+                    .collect::<Vec<String>>()
+                    .join(" ")
+            ),
+            Lval::Fun(name, _) => write!(f, "{}", name),
+            Lval::Str(s) => write!(f, "{}", s),
+            Lval::Lambda(l) => write!(
+                f,
+                "(\\ [{}] [{}])",
+                l.args.join(" "),
+                l.body
+                    .iter()
+                    .map(|x| format!("{}", x))
+                    .collect::<Vec<String>>()
+                    .join(" ")
+            ),
         }
     }
 }
@@ -59,39 +76,29 @@ impl fmt::Debug for Lval {
             Lval::Num(n) => write!(f, "{}", n),
             Lval::Sexpr(s) => write!(
                 f,
-                "({})",
-                s.into_iter()
-                    .map(|x| match x {
-                        Lval::Sym(sym) => format!("{}", sym),
-                        _ => format!("{:?}", x),
-                    })
+                "( {} )",
+                s.iter()
+                    .map(|x| format!("{}", x))
                     .collect::<Vec<String>>()
                     .join(" ")
             ),
             Lval::Qexpr(q) => write!(
                 f,
-                "[{}]",
-                q.into_iter()
-                    .map(|x| match x {
-                        Lval::Sym(sym) => format!("{}", sym),
-                        _ => format!("{:?}", x),
-                    })
+                "[ {} ]",
+                q.iter()
+                    .map(|x| format!("{}", x))
                     .collect::<Vec<String>>()
                     .join(" ")
             ),
-            Lval::Fun(_) => write!(f, "builtin"),
+            Lval::Fun(name, _) => write!(f, "{}", name),
             Lval::Str(s) => write!(f, "{}", s),
             Lval::Lambda(l) => write!(
                 f,
                 "(\\ [{}] [{}])",
                 l.args.join(" "),
                 l.body
-                    .to_owned()
-                    .into_iter()
-                    .map(|x| match x {
-                        Lval::Sym(sym) => format!("{}", sym),
-                        _ => format!("{:?}", x),
-                    })
+                    .iter()
+                    .map(|x| format!("{}", x))
                     .collect::<Vec<String>>()
                     .join(" ")
             ),
@@ -183,7 +190,7 @@ pub enum LerrType {
 pub type Lfun = fn(&mut Lenv, Vec<Lval>) -> Result<Lval, Lerr>;
 
 pub fn add_builtin(env: &mut Lenv, sym: &str, fun: Lfun) {
-    env.insert(sym, Lval::Fun(fun));
+    env.insert(sym, Lval::Fun(sym.to_string(), fun));
 }
 
 fn to_num(expr: Lval) -> Option<f64> {
@@ -227,17 +234,43 @@ fn to_lambda(expr: &Lval) -> Option<Llambda> {
     }
 }
 
-pub fn lisp(env: &mut Lenv, input: &str) -> String {
-    if "env" == input {
-        return format!("{:#?}", env.peek().unwrap());
-    }
+// pub fn lisp(env: &mut Lenv, input: &str) -> String {
+//     // if "env" == input {
+//     //     return format!("{:#?}", env.peek().unwrap());
+//     // }
 
-    let ast = parser::parse(input);
-    match ast {
-        Ok(tree) => match eval::eval(env, tree.1) {
-            Ok(r) => format!("{:?}", r),
-            Err(r) => format!("{:?}", r),
-        },
-        Err(e) => format!("Error: Parsing Error - Could not parse the input; {}", e),
+//     let ast = parser::root(input);
+//     match ast {
+//         Ok(tree) => match eval::eval(env, tree.1) {
+//             Ok(r) => format!("{:?}", r),
+//             Err(r) => format!("{:?}", r),
+//         },
+//         Err(e) => format!("Error: Parsing Error - Could not parse the input; {}", e),
+//     }
+// }
+
+pub trait Compile {
+    fn from_ast(env: &mut Lenv, ast: Lval) -> Result<String, String>;
+
+    fn from_source(env: &mut Lenv, source: &str) -> Result<String, String> {
+        println!("Compiling the source: {}", source);
+        let (_, ast) =
+            parser::root::<nom::error::VerboseError<&str>>(source).map_err(|e| match e {
+                nom::Err::Error(e) | nom::Err::Failure(e) => nom::error::convert_error(source, e),
+                _ => String::from("hmm what's this now?"),
+            })?;
+        println!("{:?}", ast);
+
+        Self::from_ast(env, ast)
+    }
+}
+
+pub struct Lisp;
+
+impl Compile for Lisp {
+    fn from_ast(env: &mut Lenv, ast: Lval) -> Result<String, String> {
+        eval::eval(env, ast)
+            .map(|v| format!("{:?}", v))
+            .map_err(|e| format!("{:?}", e))
     }
 }

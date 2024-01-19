@@ -1,102 +1,123 @@
+use std::fmt;
+
 use crate::markdown::{Markdown, MarkdownInline, MarkdownText};
 
-pub fn markdown_to_lisp(md: Markdown) -> String {
-    match md {
-        Markdown::Heading(level, text) => {
-            format!("(h{} (concat {}))\n", level, text_to_lisp(text))
-        },
-        Markdown::Blockquote(text) => {
-            format!("(blockquote (concat {}))\n", text_to_lisp(text))
-        },
-        Markdown::UnorderedList(elements) => format!(
-            "(ul\n(concat {}))\n",
-            elements
-                .into_iter()
-                .map(|element| format!("(li (concat {}))\n", text_to_lisp(element)))
-                .collect::<String>()
-        ),
-        Markdown::OrderedList(elements) => format!(
-            "(ol\n(concat {}))\n",
-            elements
-                .into_iter()
-                .map(|element| format!("\t(li (concat {}))\n", text_to_lisp(element)))
-                .collect::<String>()
-        ),
-        Markdown::TaskList(elements) => format!(
-            "(tasks\n(concat {}))\n",
-            elements
-                .into_iter()
-                .map(|(checked, element)| if checked == true {
-                    format!("\t(li (concat checked {}))\n", text_to_lisp(element))
-                } else {
-                    format!("\t(li (concat unchecked {}))\n", text_to_lisp(element))
-                })
-                .collect::<String>()
-        ),
-        Markdown::Codeblock(_, code) => format!(
-            "(pre \"{}\")\n",
-            std::str::from_utf8(code.as_bytes()).unwrap()
-        ),
-        Markdown::Line(text) => {
-            if text.is_empty() {
-                String::from("(empty)\n")
-            } else {
-                format!("(p (concat {}))\n", text_to_lisp(text))
-            }
-        }
-        Markdown::HorizontalRule => String::from("hr\n"),
-        Markdown::Lisp(lisp) => format!("{} ", std::str::from_utf8(lisp.as_bytes()).unwrap()),
+pub struct LispString(String);
+
+impl From<String> for LispString {
+    fn from(md: String) -> Self {
+        LispString(md)
     }
 }
 
-fn text_to_lisp(md: MarkdownText) -> String {
-    md.into_iter().map(inline_to_lisp).collect::<String>()
+impl fmt::Display for LispString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
-fn inline_to_lisp(md: MarkdownInline) -> String {
-    match md {
-        MarkdownInline::Bold(text) => {
-            format!(
-                "(strong \"{}\") ",
-                std::str::from_utf8(text.as_bytes()).unwrap()
-            )
+impl From<Markdown> for LispString {
+    fn from(md: Markdown) -> Self {
+        match md {
+            Markdown::Heading(level, text) => {
+                format!("(h{} (concat {}))\n", level, LispString::from(text))
+            }
+            Markdown::Blockquote(text) => {
+                format!("(blockquote (concat {}))\n", LispString::from(text))
+            }
+            Markdown::UnorderedList(elements) => format!(
+                "(ul\n(concat {}))\n",
+                elements
+                    .into_iter()
+                    .map(|element| format!("(li (concat {}))\n", LispString::from(element)))
+                    .collect::<String>()
+            ),
+            Markdown::OrderedList(elements) => format!(
+                "(ol\n(concat {}))\n",
+                elements
+                    .into_iter()
+                    .map(|element| format!("\t(li (concat {}))\n", LispString::from(element)))
+                    .collect::<String>()
+            ),
+            Markdown::TaskList(elements) => format!(
+                "(tasks\n(concat {}))\n",
+                elements
+                    .into_iter()
+                    .map(|(checked, element)| if checked == true {
+                        format!("\t(li (concat checked {}))\n", LispString::from(element))
+                    } else {
+                        format!("\t(li (concat unchecked {}))\n", LispString::from(element))
+                    })
+                    .collect::<String>()
+            ),
+            Markdown::Codeblock(_, code) => format!("(pre \"{}\")\n", code),
+            Markdown::Line(text) => {
+                if text.is_empty() {
+                    String::from("(empty)\n")
+                } else {
+                    format!("(p (concat {}))\n", LispString::from(text))
+                }
+            }
+            Markdown::HorizontalRule => String::from("hr\n"),
+            Markdown::Lisp(lisp) => format!("{} ", lisp),
         }
-        MarkdownInline::Italic(text) => {
-            format!(
-                "(em \"{}\") ",
-                std::str::from_utf8(text.as_bytes()).unwrap()
-            )
+        .into()
+    }
+}
+
+impl FromIterator<LispString> for String {
+    fn from_iter<I: IntoIterator<Item = LispString>>(iter: I) -> Self {
+        let mut s = String::new();
+
+        for i in iter {
+            s = match i.into() {
+                LispString(i) => format!("{}{}", s, i),
+            };
         }
-        MarkdownInline::Link(text, href) => format!(
-            "(a \"{}\" \"{}\") ",
-            std::str::from_utf8(href.as_bytes()).unwrap(),
-            std::str::from_utf8(text.as_bytes()).unwrap()
-        ),
-        MarkdownInline::ExternalLink(text, href) => format!(
-            "(a-out \"{}\" \"{}\") ",
-            std::str::from_utf8(href.as_bytes()).unwrap(),
-            std::str::from_utf8(text.as_bytes()).unwrap()
-        ),
-        MarkdownInline::Image(text, src) => format!(
-            "(img \"{}\" \"{}\") ",
-            std::str::from_utf8(src.as_bytes()).unwrap(),
-            std::str::from_utf8(text.as_bytes()).unwrap()
-        ),
-        MarkdownInline::Strikethrough(text) => format!(
-            "(strike \"{}\") ",
-            std::str::from_utf8(text.as_bytes()).unwrap()
-        ),
-        MarkdownInline::InlineCode(text) => format!(
-            "(code \"{}\") ",
-            std::str::from_utf8(text.as_bytes()).unwrap()
-        ),
-        MarkdownInline::Color(text) => format!(
-            "(color \"{}\") ",
-            std::str::from_utf8(text.as_bytes()).unwrap()
-        ),
-        MarkdownInline::Plaintext(text) => format!(
-            "\"{}\" ",
-            std::str::from_utf8(text.as_bytes()).unwrap().to_string()
-        ),
+
+        s.into()
+    }
+}
+
+impl FromIterator<MarkdownInline> for LispString {
+    fn from_iter<I: IntoIterator<Item = MarkdownInline>>(iter: I) -> Self {
+        let mut s = String::new();
+
+        for i in iter {
+            s = match i.into() {
+                LispString(i) => format!("{}{}", s, i),
+            };
+        }
+
+        s.into()
+    }
+}
+
+impl From<MarkdownText> for LispString {
+    fn from(md: MarkdownText) -> Self {
+        md.into_iter().collect::<LispString>()
+    }
+}
+
+impl From<MarkdownInline> for LispString {
+    fn from(md: MarkdownInline) -> Self {
+        match md {
+            MarkdownInline::Bold(text) => {
+                format!("(strong \"{}\") ", text)
+            }
+            MarkdownInline::Italic(text) => {
+                format!("(em \"{}\") ", text)
+            }
+            MarkdownInline::Link(text, href) => format!("(a \"{}\" \"{}\") ", href, text),
+            MarkdownInline::ExternalLink(text, href) => {
+                format!("(a-out \"{}\" \"{}\") ", href, text)
+            }
+            MarkdownInline::Image(text, src) => format!("(img \"{}\" \"{}\") ", src, text),
+            MarkdownInline::Strikethrough(text) => format!("(strike \"{}\") ", text),
+            MarkdownInline::InlineCode(text) => format!("(code \"{}\") ", text),
+            MarkdownInline::Color(text) => format!("(color \"{}\") ", text),
+            MarkdownInline::Plaintext(text) => format!("\"{}\" ", text.to_string()),
+        }
+        .into()
     }
 }

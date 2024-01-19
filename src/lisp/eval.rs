@@ -32,7 +32,7 @@ fn eval_sexpression(env: &mut Lenv, sexpr: Vec<Lval>) -> Result<Lval, Lerr> {
         // if singular value return singular value
         let op = results[0].clone();
         match op {
-            Lval::Fun(fun) => fun(env, vec![]),
+            Lval::Fun(_, fun) => fun(env, vec![]),
             Lval::Lambda(lambda) => call(env, lambda, vec![]),
             _ => Ok(op),
         }
@@ -40,13 +40,14 @@ fn eval_sexpression(env: &mut Lenv, sexpr: Vec<Lval>) -> Result<Lval, Lerr> {
         let operands = (&results[1..]).to_vec();
         // recognize a builtin function or a lambda
         match results[0].clone() {
-            Lval::Fun(fun) => fun(env, operands),
+            Lval::Fun(_, fun) => fun(env, operands),
             Lval::Lambda(lambda) => call(env, lambda, operands),
             _ => Err(Lerr::new(
                 LerrType::BadOp,
                 format!("{:?} is not a valid operator", results[0]),
             )),
         }
+        // Ok(Lval::Qexpr(results))
     }
 }
 
@@ -122,11 +123,11 @@ mod tests {
         let env = &mut init_env();
         assert_eq!(
             eval(env, Lval::Sym(String::from("+"))).unwrap(),
-            Lval::Fun(empty_fun)
+            Lval::Fun(String::from("+"), empty_fun)
         );
         assert_eq!(
             eval(env, Lval::Sexpr(vec![Lval::Sym(String::from("*"))])).unwrap(),
-            Lval::Fun(empty_fun)
+            Lval::Fun(String::from("*"), empty_fun)
         );
     }
 

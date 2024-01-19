@@ -1,6 +1,8 @@
 use rustyline::error::ReadlineError;
 use rustyline::{DefaultEditor, Result};
 
+use bebop_lang::lisp::{Compile, Lisp};
+
 fn main() -> Result<()> {
     // `()` can be used when no completer is required
     let mut rl = DefaultEditor::new()?;
@@ -10,8 +12,8 @@ fn main() -> Result<()> {
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str())?;
-                let v = bebop_lang::lisp::lisp(&mut env, &line.as_str());
-                println!("{}", v);
+                let v = Lisp::from_source(&mut env, &line.as_str());
+                println!("{:?}", v);
             }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");

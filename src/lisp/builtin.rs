@@ -239,7 +239,7 @@ fn builtin_if(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     let conditional = to_num(operands[0].clone()).ok_or(Lerr::new(
         LerrType::WrongType,
         format!(
-            "Function if needed conditional but was given {:?}",
+            "Function if needed conditional but was given {}",
             operands[0]
         ),
     ))?;
@@ -247,7 +247,7 @@ fn builtin_if(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     let then = to_qexpr(operands[1].clone()).ok_or(Lerr::new(
         LerrType::WrongType,
         format!(
-            "Function if needed qexpr for Then but was given {:?}",
+            "Function if needed qexpr for Then but was given {}",
             operands[1]
         ),
     ))?;
@@ -255,7 +255,7 @@ fn builtin_if(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     let els = to_qexpr(operands[2].clone()).ok_or(Lerr::new(
         LerrType::WrongType,
         format!(
-            "Function if needed qexpr for Else but was given {:?}",
+            "Function if needed qexpr for Else but was given {}",
             operands[2]
         ),
     ))?;
@@ -271,7 +271,7 @@ fn builtin_err(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     let err = to_str(operands[0].clone()).ok_or(Lerr::new(
         LerrType::WrongType,
         format!(
-            "Function die needed qexpr for Else but was given {:?}",
+            "Function die needed qexpr for Else but was given {}",
             operands[0]
         ),
     ))?;
@@ -306,7 +306,7 @@ fn builtin_head(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
         }
         _ => Err(Lerr::new(
             LerrType::WrongType,
-            format!("Function head needed Qexpr but was given {:?}", arg),
+            format!("Function head needed Qexpr but was given {}", arg),
         )),
     }
 }
@@ -338,7 +338,7 @@ fn builtin_tail(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
         }
         _ => Err(Lerr::new(
             LerrType::WrongType,
-            format!("Function tail needed Qexpr but was given {:?}", arg),
+            format!("Function tail needed Qexpr but was given {}", arg),
         )),
     }
 }
@@ -379,7 +379,7 @@ fn builtin_echo(env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
     }
 
     let arg = &operands[0];
-    Ok(Lval::Str(format!("\"{:?}\"", arg)))
+    Ok(Lval::Str(format!("\"{}\"", arg)))
 }
 
 fn builtin_join(_env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval, Lerr> {
@@ -472,7 +472,7 @@ fn builtin_assign(sym: &str, env: &mut Lenv, operands: Vec<Lval>) -> Result<Lval
     let args = to_qexpr(args)
         .ok_or(Lerr::new(
             LerrType::WrongType,
-            format!("Function def needed Qexpr but was given {:?}", operands[0]),
+            format!("Function def needed Qexpr but was given {}", operands[0]),
         ))?
         .into_iter()
         .map(to_sym)
@@ -687,11 +687,11 @@ mod tests {
 
         assert_eq!(
             builtin_eval(env, vec![Lval::Sym(String::from("-"))]).unwrap(),
-            Lval::Fun(empty_fun)
+            Lval::Fun(String::from("-"),empty_fun)
         );
         assert_eq!(
             builtin_eval(env, vec![Lval::Sexpr(vec![Lval::Sym(String::from("-"))])]).unwrap(),
-            Lval::Fun(empty_fun)
+            Lval::Fun(String::from("-"),empty_fun)
         );
         assert_eq!(
             builtin_eval(env, vec![Lval::Qexpr(vec![])]).unwrap(),

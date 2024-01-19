@@ -1,3 +1,5 @@
+use self::{html::HtmlString, lisp::LispString};
+
 pub mod html;
 pub mod lisp;
 pub mod parser;
@@ -36,7 +38,7 @@ pub fn markdown_to_html(md: &str) -> Result<String, String> {
         String::from("Not valid md")
     })?;
 
-    Ok(md.into_iter().map(html::markdown_to_html).collect())
+    Ok(md.into_iter().map(|md| HtmlString::from(md)).collect::<String>())
 }
 
 pub fn markdown_to_lisp(md: &str) -> Result<String, String> {
@@ -45,5 +47,5 @@ pub fn markdown_to_lisp(md: &str) -> Result<String, String> {
         String::from("Not valid md")
     })?;
 
-    Ok(md.into_iter().map(lisp::markdown_to_lisp).collect())
+    Ok(md.into_iter().map(|md| LispString::from(md)).collect::<String>())
 }
